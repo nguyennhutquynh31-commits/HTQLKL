@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Hệ Thống Chủ Tịch Hội Đồng – KLTN</title>
+<script>
+    // Kiểm tra xem đã đăng nhập chưa
+    if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+        // Nếu chưa, yêu cầu quay về trang index.html ngay lập tức
+        alert("Vui lòng đăng nhập qua Google để tiếp tục!");
+        window.location.href = 'index.html';
+    }
+</script>
+
+<style>
+    body { margin: 0; font-family: Arial; background: #f4f4f7; }
+    header { background: #003c8f; color: white; padding: 20px 30px; font-size: 22px; font-weight: bold; }
+
+    #container { display: flex; height: calc(100vh - 60px); }
+
+    /* SIDEBAR giống GVHD */
+    #sidebar {
+        width: 260px; background: white; border-right: 1px solid #ccc;
+        padding-top: 20px; height: 100%;
+    }
+    #sidebar button {
+        width: 100%; padding: 15px; font-size: 16px;
+        background: none; border: none; border-bottom: 1px solid #eee;
+        text-align: left; cursor: pointer;
+    }
+    #sidebar button:hover, #sidebar .active { background: #e1ecff; }
+
+    /* CONTENT */
+    #content { flex: 1; padding: 25px; overflow-y: auto; }
+
+    h2 { color: #003c8f; border-bottom: 2px solid #003c8f; padding-bottom: 10px; }
+
+    .card {
+        background: white; padding: 20px; border-radius: 12px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.1); margin-bottom: 20px;
+    }
+
+    table {
+        width: 100%; border-collapse: collapse; margin-top: 15px;
+    }
+    table th, table td {
+        border: 1px solid #ccc; padding: 10px; text-align: left;
+    }
+    table th { background: #003c8f; color: white; }
+
+    .btn { padding: 8px 14px; background: #003c8f; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .btn:hover { background: #0055d4; }
+
+    .btn-green { background: #28a745; color:white; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; }
+    .btn-red { background: #dc3545; color:white; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; }
+</style>
+</head>
+
+<body>
+
+<header>HỆ THỐNG CHỦ TỊCH HỘI ĐỒNG – KLTN</header>
+
+<div id="container">
+
+    <!-- SIDEBAR (CHỈ DÀNH CHO CHỦ TỊCH) -->
+    <div id="sidebar">
+        <button class="active" onclick="show('info')">Thông tin chung</button>
+        <button onclick="show('council')">Sinh viên theo hội đồng</button>
+        <button onclick="show('reports')">Biên bản hội đồng</button>
+        <button onclick="show('approval')">Duyệt chỉnh sửa</button>
+        <button onclick="logout()">Đăng xuất</button>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="content">
+
+        <!-- THÔNG TIN CHUNG -->
+        <section id="info" class="sec">
+            <h2>Thông tin chủ tịch hội đồng</h2>
+            <div class="card">
+                <p><b>Họ tên:</b> <span id="gvName">Chủ Tịch</span></p>
+                <p><b>Email:</b> <span id="gvEmail"></span></p>
+                <p><b>Khoa:</b> <span id="gvFaculty"></span></p>
+                <p><b>Vai trò:</b> Chủ tịch hội đồng KLTN</p>
+            </div>
+        </section>
+
+        <!-- DANH SÁCH SINH VIÊN HỘI ĐỒNG -->
+        <section id="council" class="sec" style="display:none;">
+            <h2>Danh sách sinh viên theo hội đồng</h2>
+            <div class="card">
+                <table id="councilTable">
+                    <tr>
+                        <th>Họ tên</th>
+                        <th>MSSV</th>
+                        <th>Đề tài</th>
+                        <th>Xem bài</th>
+                        <th>Điểm GVHD</th>
+                        <th>Điểm GVPB</th>
+                        <th>Điểm thành viên HĐ</th>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- BIÊN BẢN HỘI ĐỒNG -->
+        <section id="reports" class="sec" style="display:none;">
+            <h2>Biên bản hội đồng</h2>
+            <div class="card">
+                <table id="reportTable">
+                    <tr>
+                        <th>Họ tên</th>
+                        <th>MSSV</th>
+                        <th>Đề tài</th>
+                        <th>Biên bản</th>
+                        <th>Upload / Cập nhật</th>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- DUYỆT CHỈNH SỬA SAU BẢO VỆ -->
+        <section id="approval" class="sec" style="display:none;">
+            <h2>Duyệt chỉnh sửa sau bảo vệ</h2>
+            <div class="card">
+                <table id="approvalTable">
+                    <tr>
+                        <th>Họ tên</th>
+                        <th>MSSV</th>
+                        <th>Đề tài</th>
+                        <th>GVHD đã duyệt?</th>
+                        <th>Chủ tịch duyệt?</th>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<script>
+/* CHUYỂN MỤC */
+function show(id) {
+    document.querySelectorAll(".sec").forEach(x => x.style.display = "none");
+    document.getElementById(id).style.display = "block";
+
+    document.querySelectorAll("#sidebar button").forEach(btn => btn.classList.remove("active"));
+    event.target.classList.add("active");
+}
+
+/* GIẢ LẬP DỮ LIỆU HỘI ĐỒNG */
+let councilStudents = [
+    {name:"Nguyễn Văn A", mssv:"20123333", topic:"AI nhận dạng", file:"#", hdScore:8.5, pbScore:8, tvScore:7.5},
+    {name:"Trần Thị B", mssv:"20124444", topic:"IoT nhà máy", file:"#", hdScore:9, pbScore:8.2, tvScore:8.0}
+];
+
+let reports = [
+    {name:"Nguyễn Văn A", mssv:"20123333", topic:"AI nhận dạng", report:"#"},
+    {name:"Trần Thị B", mssv:"20124444", topic:"IoT nhà máy", report:"#"}
+];
+
+let approvals = [
+    {name:"Nguyễn Văn A", mssv:"20123333", topic:"AI nhận dạng", gvhd:"Yes", chair:"Pending"},
+    {name:"Trần Thị B", mssv:"20124444", topic:"IoT nhà máy", gvhd:"Yes", chair:"Pending"}
+];
+
+/* LOAD DỮ LIỆU */
+function loadCouncil(){
+    let table = document.getElementById("councilTable");
+    councilStudents.forEach(s => {
+        table.innerHTML += `
+            <tr>
+                <td>${s.name}</td>
+                <td>${s.mssv}</td>
+                <td>${s.topic}</td>
+                <td><a href="${s.file}">Xem bài</a></td>
+                <td>${s.hdScore}</td>
+                <td>${s.pbScore}</td>
+                <td>${s.tvScore}</td>
+            </tr>
+        `;
+    });
+}
+
+function loadReports(){
+    let table = document.getElementById("reportTable");
+    reports.forEach(s => {
+        table.innerHTML += `
+            <tr>
+                <td>${s.name}</td>
+                <td>${s.mssv}</td>
+                <td>${s.topic}</td>
+                <td><a href="${s.report}">Xem</a></td>
+                <td><button class="btn">Upload</button></td>
+            </tr>
+        `;
+    });
+}
+
+function loadApprovals(){
+    let table = document.getElementById("approvalTable");
+    approvals.forEach(s => {
+        table.innerHTML += `
+            <tr>
+                <td>${s.name}</td>
+                <td>${s.mssv}</td>
+                <td>${s.topic}</td>
+                <td>${s.gvhd}</td>
+                <td>
+                    <button class="btn-green">Yes</button>
+                    <button class="btn-red">No</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+window.onload = function() {
+    loadCouncil();
+    loadReports();
+    loadApprovals();
+}
+
+/* ĐĂNG XUẤT */
+function logout() {
+    sessionStorage.clear();
+    window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập hệ thống | HCMUTE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+    const user = sessionStorage.getItem("user");
+    if (user) {
+        const parsedUser = JSON.parse(user);
+        const role = parsedUser.Role ? parsedUser.Role.trim() : "";
+
+        const routes = {
+            "Sinh viên": "student.html",
+            "GVHD": "gv.html",
+            "GVPB": "gvpb.html",
+            "TVHĐ": "admin_dashboard.html",
+            "Thư ký": "admin_dashboard.html"
+        };
+
+        window.location.href = routes[role] || "student.html";
+    }
+    </script>
+    <style>
+        :root { 
+            --hcmute-blue: #0d037e; 
+            --bg-color: #F0F2F5; 
+            --text-sub: #4B5563; 
+        }
+
+        body { 
+            font-family: 'Inter', -apple-system, system-ui, sans-serif; 
+            background: var(--bg-color); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            color: #111827;
+        }
+
+        .login-card { 
+            background: white; 
+            padding: 50px 40px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06); 
+            text-align: center; 
+            width: 580px; 
+            box-sizing: border-box;
+        }
+
+        .university-header {
+            margin-bottom: 25px;
+        }
+
+        .logo { 
+            width: 90px; 
+            margin-bottom: 12px; 
+            height: auto;
+        }
+
+        .school-name { 
+            font-size: 19px; 
+            font-weight: 700; 
+            color: var(--hcmute-blue); 
+            margin: 0 0 8px 0; 
+            text-transform: uppercase; 
+            line-height: 1.2;
+            white-space: nowrap; 
+            letter-spacing: 0.3px;
+        }
+
+        .sub-title { 
+            color: var(--text-sub); 
+            font-size: 14px; 
+            font-weight: 500;
+            margin: 0;
+            line-height: 1.4;
+            letter-spacing: 0.3px;
+        }
+
+        h2 { 
+            color: #003399; 
+            font-size: 20px; 
+            font-weight: 700; 
+            margin: 0 0 25px 0; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+        }
+
+        /* Căn giữa nút Google */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="university-header">
+            <img src="/image/Logo HCMUTE-Corel-white background.jpg" class="logo" alt="Logo HCMUTE">
+            <p class="school-name">TRƯỜNG ĐẠI HỌC SƯ PHẠM KỸ THUẬT TP.HCM</p>
+            <p class="sub-title">HỆ THỐNG QUẢN LÝ KHÓA LUẬN TỐT NGHIỆP</p>
+        </div>
+        
+        <h2>ĐĂNG NHẬP</h2>
+        
+        <div class="auth-container">
+            <div id="g_id_onload"
+                 data-client_id="51673471370-48t3uns2pnetr9h1uliao9b32ks3q9d3.apps.googleusercontent.com"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-callback="handleCredentialResponse"
+                 data-auto_prompt="false">
+            </div>
+
+            <div class="g_id_signin" 
+                 data-type="standard" 
+                 data-shape="rectangular" 
+                 data-theme="outline" 
+                 data-text="signin_with" 
+                 data-size="large" 
+                 data-logo_alignment="left">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSmOeNIkJWWwDGhDp_4sxIHATdhjNhpseYRcha99HR5NX0pWpPLePI2JIWzROgDZUp3qvU_XHOZ4eQj/pub?gid=0&single=true&output=csv";
+
+        async function handleCredentialResponse(response) {
+            const payload = decodeJwtResponse(response.credential);
+            const userEmail = payload.email.toLowerCase();
+
+            try {
+                const res = await fetch(DATA_URL);
+                const csvData = await res.text();
+                const users = csvToJSON(csvData);
+
+                const foundUser = users.find(u => u.Email && u.Email.trim().toLowerCase() === userEmail);
+
+                if (foundUser) {
+                     // 🔥🔥🔥 FIX Ở ĐÂY
+                    sessionStorage.setItem("isLoggedIn", "true"); // ✅ THÊM DÒNG NÀY
+                    sessionStorage.setItem("user", JSON.stringify(foundUser));
+                    const role = foundUser.Role ? foundUser.Role.trim() : "";
+                    
+                    const routes = {
+                        "Sinh viên": "student.html",
+                        "GVHD": "gv.html",
+                        "GVPB": "gvpb.html",
+                        "TVHĐ": "admin_dashboard.html",
+                        "Thư ký": "admin_dashboard.html"
+                    };
+
+                    window.location.href = routes[role] || "index.html";
+                } else {
+                    alert("Tài khoản " + userEmail + " không có trên hệ thống!");
+                }
+            } catch (err) {
+                console.error("Lỗi:", err);
+                alert("Lỗi kết nối dữ liệu!");
+            }
+        }
+
+        function csvToJSON(csv) {
+            const lines = csv.split("\n");
+            const headers = lines[0].split(",");
+            return lines.slice(1).map(line => {
+                const data = line.split(",");
+                return headers.reduce((obj, header, i) => {
+                    obj[header.trim()] = data[i] ? data[i].trim() : "";
+                    return obj;
+                }, {});
+            });
+        }
+
+        function decodeJwtResponse(token) {
+            let base64Url = token.split('.')[1];
+            let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            return JSON.parse(window.atob(base64));
+        }
+    </script>
+</body>
+</html>

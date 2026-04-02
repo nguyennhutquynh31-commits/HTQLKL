@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Hệ Thống GVPB – KLTN</title>
+<script>
+    // Kiểm tra xem đã đăng nhập chưa
+    if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+        // Nếu chưa, yêu cầu quay về trang index.html ngay lập tức
+        alert("Vui lòng đăng nhập qua Google để tiếp tục!");
+        window.location.href = 'index.html';
+    }
+</script>
+
+<style>
+    body { margin: 0; font-family: Arial; background: #f4f4f7; }
+    header { background: #003c8f; color: white; padding: 20px 30px; font-size: 22px; font-weight: bold; }
+
+    #container { display: flex; height: calc(100vh - 60px); }
+
+    /* SIDEBAR */
+    #sidebar {
+        width: 260px; background: white; border-right: 1px solid #ccc;
+        padding-top: 20px; height: 100%;
+    }
+    #sidebar button {
+        width: 100%; padding: 15px; font-size: 16px;
+        background: none; border: none; border-bottom: 1px solid #eee;
+        text-align: left; cursor: pointer;
+    }
+    #sidebar button:hover, #sidebar .active { background: #e1ecff; }
+
+    /* CONTENT */
+    #content { flex: 1; padding: 25px; overflow-y: auto; }
+
+    h2 { color: #003c8f; border-bottom: 2px solid #003c8f; padding-bottom: 10px; }
+
+    .card {
+        background: white; padding: 20px; border-radius: 12px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.1); margin-bottom: 20px;
+    }
+
+    table {
+        width: 100%; border-collapse: collapse; margin-top: 15px;
+    }
+    table th, table td {
+        border: 1px solid #ccc; padding: 10px; text-align: left;
+    }
+    table th { background: #003c8f; color: white; }
+
+    textarea {
+        width: 100%; height: 70px; border-radius: 6px; padding: 8px;
+        border: 1px solid #aaa; resize: vertical;
+    }
+
+    .btn { padding: 8px 14px; background: #003c8f; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .btn:hover { background: #0055d4; }
+</style>
+</head>
+
+<body>
+
+<header>HỆ THỐNG GIẢNG VIÊN PHẢN BIỆN – KLTN</header>
+
+<div id="container">
+
+    <!-- SIDEBAR CHO GVPB -->
+    <div id="sidebar">
+        <button class="active" onclick="show('info')">Thông tin chung</button>
+        <button onclick="show('review')">Danh sách phản biện</button>
+        <button onclick="show('council')">Hội đồng</button>
+        <button onclick="logout()">Đăng xuất</button>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="content">
+
+        <!-- THÔNG TIN CHUNG -->
+        <section id="info" class="sec">
+            <h2>Thông tin giảng viên phản biện</h2>
+            <div class="card">
+                <p><b>Họ tên:</b> <span id="gvName">Giảng viên phản biện</span></p>
+                <p><b>Email:</b> <span id="gvEmail"></span></p>
+                <p><b>Khoa:</b> <span id="gvFaculty"></span></p>
+                <p><b>Vai trò:</b> Giảng viên phản biện</p>
+            </div>
+        </section>
+
+        <!-- DANH SÁCH PHẢN BIỆN -->
+        <section id="review" class="sec" style="display:none;">
+            <h2>Sinh viên phản biện</h2>
+
+            <div class="card">
+                <table id="reviewTable">
+                    <tr>
+                        <th>Họ tên</th>
+                        <th>MSSV</th>
+                        <th>Đề tài</th>
+                        <th>Xem bài</th>
+                        <th>Nhận xét</th>
+                        <th>Điểm</th>
+                        <th>Lưu</th>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- HỘI ĐỒNG -->
+        <section id="council" class="sec" style="display:none;">
+            <h2>Sinh viên trong hội đồng</h2>
+
+            <div class="card">
+                <table id="councilTable">
+                    <tr>
+                        <th>Họ tên</th>
+                        <th>MSSV</th>
+                        <th>Đề tài</th>
+                        <th>Xem bài</th>
+                        <th>Điểm của hội đồng</th>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<script>
+/* CHUYỂN MỤC */
+function show(id) {
+    document.querySelectorAll(".sec").forEach(x => x.style.display = "none");
+    document.getElementById(id).style.display = "block";
+
+    document.querySelectorAll("#sidebar button").forEach(btn => btn.classList.remove("active"));
+    event.target.classList.add("active");
+}
+
+/* GIẢ LẬP DỮ LIỆU — sẽ thay bằng API */
+let reviewStudents = [
+    {name:"Nguyễn Văn A", mssv:"20120001", topic:"AI nhận dạng", file:"#"},
+    {name:"Trần Thị B", mssv:"20120002", topic:"Ứng dụng IoT", file:"#"}
+];
+
+let councilStudents = [
+    {name:"Lê Văn C", mssv:"20120003", topic:"Phân tích dữ liệu", file:"#", score:"8.5"}
+];
+
+/* LOAD PHẢN BIỆN */
+function loadReview() {
+    const table = document.getElementById("reviewTable");
+    reviewStudents.forEach(s => {
+        table.innerHTML += `
+        <tr>
+            <td>${s.name}</td>
+            <td>${s.mssv}</td>
+            <td>${s.topic}</td>
+            <td><a href="${s.file}" class="btn">Xem</a></td>
+            <td><textarea placeholder="Nhập nhận xét, câu hỏi..."></textarea></td>
+            <td><input type="number" min="0" max="10" step="0.1" style="width:70px;"></td>
+            <td><button class="btn">Lưu</button></td>
+        </tr>`;
+    });
+}
+
+/* LOAD HỘI ĐỒNG */
+function loadCouncil() {
+    const table = document.getElementById("councilTable");
+    councilStudents.forEach(s => {
+        table.innerHTML += `
+        <tr>
+            <td>${s.name}</td>
+            <td>${s.mssv}</td>
+            <td>${s.topic}</td>
+            <td><a href="${s.file}" class="btn">Xem</a></td>
+            <td>${s.score}</td>
+        </tr>`;
+    });
+}
+
+window.onload = function() {
+    loadReview();
+    loadCouncil();
+}
+
+/* LOGOUT */
+function logout() {
+    sessionStorage.clear();
+    window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>

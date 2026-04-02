@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Hệ Thống Sinh Viên - BCTT & KLTN</title>
+<script>
+    
+    // Kiểm tra xem đã đăng nhập chưa
+    if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+        // Nếu chưa, yêu cầu quay về trang index.html ngay lập tức
+        alert("Vui lòng đăng nhập qua Google để tiếp tục!");
+        window.location.href = 'index.html';
+    }
+</script>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f4f4f7;
+    }
+
+    header {
+        background: #003c8f;
+        color: white;
+        padding: 20px 30px;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    #container {
+        display: flex;
+        height: calc(100vh - 60px);
+    }
+
+    /* MENU */
+    #sidebar {
+        width: 260px;
+        background: white;
+        padding-top: 20px;
+        border-right: 1px solid #ccc;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    #sidebar button {
+        width: 100%;
+        padding: 15px;
+        font-size: 16px;
+        border: none;
+        background: white;
+        text-align: left;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+    }
+
+    #sidebar button:hover, #sidebar .active {
+        background: #e1ecff;
+    }
+
+    /* Nút đăng xuất */
+    #logoutBtn {
+        margin-top: auto;
+        background: #ff4d4d;
+        color: white;
+        font-weight: bold;
+        border-top: 2px solid #ccc;
+        border-bottom: none;
+    }
+
+    #logoutBtn:hover {
+        background: #e60000;
+    }
+
+    /* NỘI DUNG */
+    #content {
+        flex: 1;
+        padding: 25px;
+        overflow-y: auto;
+    }
+
+    h2 {
+        color: #003c8f;
+        border-bottom: 2px solid #003c8f;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    .card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    }
+
+    input, select {
+        width: 100%;
+        padding: 12px;
+        margin-top: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #aaa;
+        border-radius: 6px;
+    }
+
+    .btn {
+        padding: 12px 18px;
+        background: #003c8f;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 15px;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background: #0052cc;
+    }
+
+    .timeline {
+        border-left: 3px solid #003c8f;
+        padding-left: 20px;
+    }
+
+    .step {
+        margin-bottom: 20px;
+    }
+
+    .step b {
+        color: #003c8f;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    CỔNG THÔNG TIN SINH VIÊN – BCTT & KLTN
+</header>
+
+<div id="container">
+
+    <!-- MENU -->
+    <div id="sidebar">
+        <button class="active" onclick="show('info')">Thông tin chung</button>
+        <button onclick="show('bctt')">Đăng ký BCTT</button>
+        <button onclick="show('kltm')">Đăng ký KLTN</button>
+        <button onclick="show('status')">Theo dõi trạng thái</button>
+        <button onclick="show('upload')">Upload bài</button>
+
+        <!-- Nút đăng xuất -->
+        <button id="logoutBtn" onclick="logout()">Đăng xuất</button>
+    </div>
+
+    <!-- NỘI DUNG -->
+    <div id="content">
+
+        <!-- THÔNG TIN CHUNG -->
+        <div id="info" class="section">
+            <h2>Thông tin sinh viên</h2>
+
+            <div class="profile-container card">
+
+                <div class="profile-right">
+                    <h3 class="section-title">Thông tin cá nhân</h3>
+                    <p><b>Họ tên:</b> <span id="svName"></span></p>
+                    <p><b>MSSV:</b> <span id="svMSSV"></span></p>
+                    <p><b>Giới tính:</b> <span id="svGender"></span></p>
+                    <p><b>Email trường:</b> <span id="svEmail"></span></p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ĐĂNG KÝ BCTT -->
+        <div id="bctt" class="section" style="display:none;">
+            <h2>Đăng ký BCTT</h2>
+
+            <div class="card">
+                <label>Đề tài</label>
+                <input type="text" placeholder="Nhập tên đề tài">
+
+                <label>Lĩnh vực</label>
+                <select>
+                    <option>Web</option>
+                    <option>Mobile</option>
+                    <option>AI</option>
+                </select>
+
+                <label>Giảng viên hướng dẫn</label>
+                <select>
+                    <option>Thầy A</option>
+                    <option>Cô B</option>
+                    <option>Thầy C</option>
+                </select>
+
+                <label>Đợt đăng ký</label>
+                <select>
+                    <option>Đợt 1 - 2025</option>
+                    <option>Đợt 2 - 2025</option>
+                </select>
+
+                <button class="btn">Gửi đăng ký</button>
+            </div>
+        </div>
+
+        <!-- ĐĂNG KÝ KLTN -->
+        <div id="kltm" class="section" style="display:none;">
+            <h2>Đăng ký KLTN</h2>
+
+            <div class="card">
+                <label>Đề tài</label>
+                <input type="text" placeholder="Nhập tên đề tài">
+
+                <label>Lĩnh vực</label>
+                <select>
+                    <option>Web</option>
+                    <option>Mobile</option>
+                    <option>AI</option>
+                </select>
+
+                <label>Giảng viên hướng dẫn (mặc định từ BCTT)</label>
+                <select>
+                    <option>Thầy A</option>
+                    <option>Cô B</option>
+                </select>
+
+                <label>Đợt đăng ký</label>
+                <select>
+                    <option>Đợt 1 - 2025</option>
+                    <option>Đợt 2 - 2025</option>
+                </select>
+
+                <button class="btn">Gửi đăng ký</button>
+            </div>
+        </div>
+
+        <!-- THEO DÕI TRẠNG THÁI -->
+        <div id="status" class="section" style="display:none;">
+            <h2>Theo dõi trạng thái</h2>
+
+            <div class="card timeline">
+                <div class="step">
+                    <b>✔ Đăng ký BCTT:</b> Đã duyệt
+                </div>
+                <div class="step">
+                    <b>✔ Nộp bài BCTT:</b> Đã nộp
+                </div>
+                <div class="step">
+                    <b>⏳ Chấm điểm BCTT:</b> Đang chờ
+                </div>
+                <div class="step">
+                    <b>❌ Đăng ký KLTN:</b> Chưa đủ điều kiện
+                </div>
+            </div>
+        </div>
+
+        <!-- UPLOAD BÀI -->
+        <div id="upload" class="section" style="display:none;">
+            <h2>Upload bài</h2>
+
+            <div class="card">
+                <h3>BCTT</h3>
+                <label>Upload bài báo cáo (PDF)</label>
+                <input type="file">
+
+                <label>Upload phiếu xác nhận (PDF)</label>
+                <input type="file">
+
+                <button class="btn">Upload BCTT</button>
+            </div>
+
+            <div class="card">
+                <h3>KLTN</h3>
+                <label>Bài KLTN (PDF)</label>
+                <input type="file">
+
+                <label>Bài KLTN chỉnh sửa (PDF)</label>
+                <input type="file">
+
+                <button class="btn">Upload KLTN</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function show(id) {
+    document.querySelectorAll(".section").forEach(sec => sec.style.display = "none");
+    document.querySelectorAll("#sidebar button").forEach(btn => btn.classList.remove("active"));
+
+    document.getElementById(id).style.display = "block";
+    event.target.classList.add("active");
+}
+
+function logout() {
+    alert("Bạn đã đăng xuất!");
+    window.location.href = "login.html"; // chuyển về trang đăng nhập nếu có
+}
+</script>
+
+</body>
+</html>

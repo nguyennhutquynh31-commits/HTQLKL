@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Trưởng Bộ Môn – KLTN</title>
+<script>
+    // Kiểm tra xem đã đăng nhập chưa
+    if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+        // Nếu chưa, yêu cầu quay về trang index.html ngay lập tức
+        alert("Vui lòng đăng nhập qua Google để tiếp tục!");
+        window.location.href = 'index.html';
+    }
+</script>
+
+<style>
+    body { margin: 0; font-family: Arial; background: #f4f4f7; }
+    header { background: #003c8f; color: white; padding: 20px 30px; font-size: 22px; font-weight: bold; }
+
+    #container { display: flex; height: calc(100vh - 60px); }
+
+    /* SIDEBAR */
+    #sidebar {
+        width: 260px; background: white; border-right: 1px solid #ccc;
+        padding-top: 20px; height: 100%;
+    }
+    #sidebar button {
+        width: 100%; padding: 15px; font-size: 16px;
+        background: none; border: none; border-bottom: 1px solid #eee;
+        text-align: left; cursor: pointer;
+    }
+    #sidebar button:hover, #sidebar .active { background: #e1ecff; }
+
+    /* CONTENT */
+    #content { flex: 1; padding: 25px; overflow-y: auto; }
+
+    h2 { color: #003c8f; border-bottom: 2px solid #003c8f; padding-bottom: 10px; }
+
+    .card {
+        background: white; padding: 20px; border-radius: 12px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.1); margin-bottom: 20px;
+    }
+
+    table {
+        width: 100%; border-collapse: collapse; margin-top: 15px;
+    }
+    table th, table td {
+        border: 1px solid #ccc; padding: 10px; text-align: left;
+    }
+    table th { background: #003c8f; color: white; }
+
+    .btn { padding: 8px 14px; background: #003c8f; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .btn:hover { background: #0055d4; }
+
+    .btn-green { padding: 8px 14px; background: #28a745; color: white; border-radius: 6px; cursor: pointer; }
+    .btn-red { padding: 8px 14px; background: #d9534f; color: white; border-radius: 6px; cursor: pointer; }
+</style>
+</head>
+
+<body>
+
+<header>HỆ THỐNG TRƯỞNG BỘ MÔN – KLTN</header>
+
+<div id="container">
+
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+        <button class="active" onclick="show('info')">Thông tin chung</button>
+        <button onclick="show('quota')">Duyệt quota GV</button>
+        <button onclick="show('assignPB')">Phân công phản biện</button>
+        <button onclick="show('assignCouncilGV')">Phân công GV vào hội đồng</button>
+        <button onclick="show('assignCouncilSV')">Phân công SV vào hội đồng</button>
+        <button onclick="show('stats')">Thống kê</button>
+        <button onclick="logout()">Đăng xuất</button>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="content">
+
+        <!-- 1. INFO -->
+        <section id="info" class="sec">
+            <h2>Thông tin trưởng bộ môn</h2>
+            <div class="card">
+                <p><b>Họ tên:</b> <span id="name">Trưởng Bộ Môn</span></p>
+                <p><b>Email:</b> tbm@example.com</p>
+                <p><b>Khoa:</b> Công nghệ thông tin</p>
+            </div>
+        </section>
+
+        <!-- 2. QUOTA GIẢNG VIÊN -->
+        <section id="quota" class="sec" style="display:none;">
+            <h2>Duyệt quota giảng viên</h2>
+            <div class="card">
+                <table id="quotaTable">
+                    <tr>
+                        <th>Giảng viên</th>
+                        <th>Khoa</th>
+                        <th>Quota đề xuất</th>
+                        <th>Duyệt</th>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- 3. PHÂN CÔNG PHẢN BIỆN -->
+        <section id="assignPB" class="sec" style="display:none;">
+            <h2>Phân công giảng viên phản biện</h2>
+            <div class="card">
+                <table id="pbTable">
+                    <tr>
+                        <th>Sinh viên</th>
+                        <th>MSSV</th>
+                        <th>Đề tài</th>
+                        <th>GV hướng dẫn</th>
+                        <th>Chọn GV phản biện</th>
+                        <th>Xác nhận</th>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- 4. PHÂN CÔNG GV VÀO HỘI ĐỒNG -->
+        <section id="assignCouncilGV" class="sec" style="display:none;">
+            <h2>Phân công giảng viên vào hội đồng</h2>
+            <div class="card">
+                <table id="councilGVTable">
+                    <tr>
+                        <th>Tên giảng viên</th>
+                        <th>Vai trò</th>
+                        <th>Chọn hội đồng</th>
+                        <th>Xác nhận</th>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- 5. PHÂN CÔNG SV VÀO HỘI ĐỒNG -->
+        <section id="assignCouncilSV" class="sec" style="display:none;">
+            <h2>Phân công sinh viên vào hội đồng</h2>
+            <div class="card">
+                <table id="councilSVTable">
+                    <tr>
+                        <th>Tên sinh viên</th>
+                        <th>MSSV</th>
+                        <th>Đề tài</th>
+                        <th>Chọn hội đồng</th>
+                        <th>Xác nhận</th>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- 6. THỐNG KÊ -->
+        <section id="stats" class="sec" style="display:none;">
+            <h2>Thống kê</h2>
+            <div class="card">
+                <table id="statsTable">
+                    <tr>
+                        <th>Sinh viên</th>
+                        <th>MSSV</th>
+                        <th>Điểm HD</th>
+                        <th>Điểm PB</th>
+                        <th>Điểm CT</th>
+                        <th>Điểm TV</th>
+                        <th>Điểm Final</th>
+                        <th>Duyệt chỉnh sửa</th>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<script>
+/* CHUYỂN TRANG */
+function show(id) {
+    document.querySelectorAll(".sec").forEach(x => x.style.display = "none");
+    document.getElementById(id).style.display = "block";
+
+    document.querySelectorAll("#sidebar button").forEach(btn => btn.classList.remove("active"));
+    event.target.classList.add("active");
+}
+
+/* DỮ LIỆU GIẢ LẬP */
+let quotaData = [
+    {gv:"Nguyễn Văn A", khoa:"CNTT", quota:5},
+    {gv:"Trần Thị B", khoa:"CNTT", quota:7}
+];
+
+let studentsPB = [
+    {name:"Nguyễn Văn C", mssv:"20123456", topic:"AI", gvhd:"Nguyễn Văn A"},
+    {name:"Trần Thị D", mssv:"20124567", topic:"Web", gvhd:"Trần Thị B"}
+];
+
+let gvCouncil = [
+    {gv:"Nguyễn Văn A", role:"TV"},
+    {gv:"Trần Thị B", role:"CT"},
+    {gv:"Phạm Văn E", role:"GVHD"}
+];
+
+let svCouncil = [
+    {name:"Lê Văn F", mssv:"20125555", topic:"IoT"},
+    {name:"Lê Văn H", mssv:"20126666", topic:"Blockchain"}
+];
+
+let statsData = [
+    {name:"Nguyễn Văn C", mssv:"20123456", hd:8, pb:9, ct:8.5, tv:8, final:8.37, approve:"Chờ"},
+    {name:"Trần Thị D", mssv:"20124567", hd:7, pb:8, ct:7.5, tv:7, final:7.37, approve:"Đã duyệt"}
+];
+
+/* HIỂN THỊ QUOTA */
+function loadQuota() {
+    let t = document.getElementById("quotaTable");
+    quotaData.forEach(x => {
+        t.innerHTML += `
+        <tr>
+            <td>${x.gv}</td>
+            <td>${x.khoa}</td>
+            <td>${x.quota}</td>
+            <td><button class="btn-green">Duyệt</button></td>
+        </tr>`;
+    });
+}
+
+/* PHÂN CÔNG PB */
+function loadPB() {
+    let t = document.getElementById("pbTable");
+    studentsPB.forEach(x => {
+        t.innerHTML += `
+        <tr>
+            <td>${x.name}</td>
+            <td>${x.mssv}</td>
+            <td>${x.topic}</td>
+            <td>${x.gvhd}</td>
+            <td>
+                <select>
+                    <option>Nguyễn Văn A</option>
+                    <option>Trần Thị B</option>
+                    <option>Phạm Văn E</option>
+                </select>
+            </td>
+            <td><button class="btn">Xác nhận</button></td>
+        </tr>`;
+    });
+}
+
+/* PHÂN CÔNG GV HỘI ĐỒNG */
+function loadCouncilGV() {
+    let t = document.getElementById("councilGVTable");
+    gvCouncil.forEach(x => {
+        t.innerHTML += `
+        <tr>
+            <td>${x.gv}</td>
+            <td>${x.role}</td>
+            <td>
+                <select>
+                    <option>Hội đồng 1</option>
+                    <option>Hội đồng 2</option>
+                </select>
+            </td>
+            <td><button class="btn">Xác nhận</button></td>
+        </tr>`;
+    });
+}
+
+/* PHÂN CÔNG SV HỘI ĐỒNG */
+function loadCouncilSV() {
+    let t = document.getElementById("councilSVTable");
+    svCouncil.forEach(x => {
+        t.innerHTML += `
+        <tr>
+            <td>${x.name}</td>
+            <td>${x.mssv}</td>
+            <td>${x.topic}</td>
+            <td>
+                <select>
+                    <option>Hội đồng 1</option>
+                    <option>Hội đồng 2</option>
+                </select>
+            </td>
+            <td><button class="btn">Xác nhận</button></td>
+        </tr>`;
+    });
+}
+
+/* THỐNG KÊ */
+function loadStats() {
+    let t = document.getElementById("statsTable");
+    statsData.forEach(x => {
+        t.innerHTML += `
+        <tr>
+            <td>${x.name}</td>
+            <td>${x.mssv}</td>
+            <td>${x.hd}</td>
+            <td>${x.pb}</td>
+            <td>${x.ct}</td>
+            <td>${x.tv}</td>
+            <td>${x.final.toFixed(2)}</td>
+            <td>${x.approve}</td>
+        </tr>`;
+    });
+}
+
+/* LOAD TẤT CẢ */
+window.onload = function () {
+    loadQuota();
+    loadPB();
+    loadCouncilGV();
+    loadCouncilSV();
+    loadStats();
+};
+
+/* ĐĂNG XUẤT */
+function logout() {
+    window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>

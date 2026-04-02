@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Hệ Thống Thư Ký Hội Đồng – KLTN</title>
+<script>
+    // Kiểm tra xem đã đăng nhập chưa
+    if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+        // Nếu chưa, yêu cầu quay về trang index.html ngay lập tức
+        alert("Vui lòng đăng nhập qua Google để tiếp tục!");
+        window.location.href = 'index.html';
+    }
+</script>
+
+<style>
+    body { margin: 0; font-family: Arial; background: #f4f4f7; }
+    header { background: #003c8f; color: white; padding: 20px 30px; font-size: 22px; font-weight: bold; }
+
+    #container { display: flex; height: calc(100vh - 60px); }
+
+    /* SIDEBAR */
+    #sidebar {
+        width: 260px; background: white; border-right: 1px solid #ccc;
+        padding-top: 20px; height: 100%;
+    }
+    #sidebar button {
+        width: 100%; padding: 15px; font-size: 16px;
+        background: none; border: none; border-bottom: 1px solid #eee;
+        text-align: left; cursor: pointer;
+    }
+    #sidebar button:hover, #sidebar .active { background: #e1ecff; }
+
+    /* MAIN CONTENT */
+    #content { flex: 1; padding: 25px; overflow-y: auto; }
+    h2 { color: #003c8f; border-bottom: 2px solid #003c8f; padding-bottom: 10px; }
+
+    .card {
+        background: white; padding: 20px; border-radius: 12px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.1); margin-bottom: 20px;
+    }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    table th, table td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    table th { background: #003c8f; color: white; }
+
+    .btn {
+        padding: 8px 14px; background: #003c8f; color: white;
+        border: none; border-radius: 6px; cursor: pointer;
+    }
+    .btn:hover { background: #0055d4; }
+
+    .input-score {
+        width: 80px; padding: 6px; text-align: center;
+        border: 1px solid #aaa; border-radius: 6px;
+    }
+</style>
+</head>
+
+<body>
+
+<header>HỆ THỐNG THƯ KÝ HỘI ĐỒNG – KLTN</header>
+
+<div id="container">
+
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+        <button class="active" onclick="show('info')">Thông tin chung</button>
+        <button onclick="show('students')">Danh sách sinh viên</button>
+        <button onclick="show('final')">Nhập điểm Final</button>
+        <button onclick="logout()">Đăng xuất</button>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="content">
+
+        <!-- THÔNG TIN CHUNG -->
+        <section id="info" class="sec">
+            <h2>Thông tin Thư ký hội đồng</h2>
+            <div class="card">
+                <p><b>Họ tên:</b> <span id="tkName">Thư ký</span></p>
+                <p><b>Email:</b> <span id="tkEmail"></span></p>
+                <p><b>Hội đồng:</b> <span id="tkCouncil">Hội đồng 1</span></p>
+            </div>
+        </section>
+
+        <!-- DANH SÁCH SINH VIÊN -->
+        <section id="students" class="sec" style="display:none;">
+            <h2>Sinh viên trong hội đồng</h2>
+
+            <div class="card">
+                <table id="studentTable">
+                    <tr>
+                        <th>Họ tên</th>
+                        <th>MSSV</th>
+                        <th>Đề tài</th>
+                        <th>Điểm GVHD</th>
+                        <th>Điểm GVPB</th>
+                        <th>Điểm Chủ tịch</th>
+                        <th>Điểm Thành viên</th>
+                        <th>Điểm Final</th>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- NHẬP ĐIỂM FINAL -->
+        <section id="final" class="sec" style="display:none;">
+            <h2>Nhập điểm Final</h2>
+
+            <div class="card">
+                <table id="finalTable">
+                    <tr>
+                        <th>Họ tên</th>
+                        <th>MSSV</th>
+                        <th>GVHD</th>
+                        <th>GVPB</th>
+                        <th>Chủ tịch</th>
+                        <th>Thành viên</th>
+                        <th>Final</th>
+                        <th>Lưu</th>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<script>
+
+/* CHUYỂN MỤC */
+function show(id) {
+    document.querySelectorAll(".sec").forEach(x => x.style.display = "none");
+    document.getElementById(id).style.display = "block";
+
+    document.querySelectorAll("#sidebar button").forEach(btn => btn.classList.remove("active"));
+    event.target.classList.add("active");
+}
+
+/* FAKE DATA TỪ BACKEND */
+let councilStudents = [
+    {
+        name: "Nguyễn Văn A",
+        mssv: "20123456",
+        topic: "AI nhận dạng khuôn mặt",
+        hd: 8.5, pb: 9.0, ct: 9.2, tv: 8.7,
+        final: ""
+    },
+    {
+        name: "Trần Thị B",
+        mssv: "20127890",
+        topic: "Ứng dụng IoT",
+        hd: 8.0, pb: 8.5, ct: 9.0, tv: 8.6,
+        final: ""
+    }
+];
+
+/* LOAD DANH SÁCH */
+function loadStudents() {
+    let table = document.getElementById("studentTable");
+
+    councilStudents.forEach(s => {
+        table.innerHTML += `
+        <tr>
+            <td>${s.name}</td>
+            <td>${s.mssv}</td>
+            <td>${s.topic}</td>
+            <td>${s.hd}</td>
+            <td>${s.pb}</td>
+            <td>${s.ct}</td>
+            <td>${s.tv}</td>
+            <td>${s.final || "-"}</td>
+        </tr>`;
+    });
+}
+
+/* LOAD BẢNG NHẬP FINAL */
+function loadFinalTable() {
+    let table = document.getElementById("finalTable");
+
+    councilStudents.forEach(s => {
+        table.innerHTML += `
+        <tr>
+            <td>${s.name}</td>
+            <td>${s.mssv}</td>
+            <td>${s.hd}</td>
+            <td>${s.pb}</td>
+            <td>${s.ct}</td>
+            <td>${s.tv}</td>
+            <td>
+                <input class="input-score" id="final-${s.mssv}" 
+                    value="${s.final}" placeholder="0 - 10" readonly />
+            </td>
+            <td><button class="btn" onclick="calculateFinal('${s.mssv}')">Tính</button></td>
+        </tr>`;
+    });
+}
+
+/* TÍNH ĐIỂM FINAL */
+function calculateFinal(mssv) {
+    const sv = councilStudents.find(s => s.mssv === mssv);
+
+    let final = (sv.hd + sv.pb + sv.ct + sv.tv) / 4;
+    final = final.toFixed(2);
+
+    sv.final = final;
+    document.getElementById("final-"+mssv).value = final;
+
+    alert("Đã cập nhật điểm final: " + final);
+}
+
+/* ONLOAD */
+window.onload = function() {
+    loadStudents();
+    loadFinalTable();
+}
+
+/* LOGOUT */
+function logout() {
+    sessionStorage.clear();
+    window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>
